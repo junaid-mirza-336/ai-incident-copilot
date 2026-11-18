@@ -1,0 +1,23 @@
+[project]
+name = "ai-incident-copilot"
+version = "0.1.0"
+description = "AI-powered assistant that helps analyze and respond to IT incidents faster."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.24.0",
+    "google-generativeai>=0.3.0"
+]
+
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["incident_copilot*"]
