@@ -4,9 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application configuration settings loaded from environment variables or .env file."""
 
-    freem_api_key: str = ""
-    default_model: str = "gemini-1.5-pro"
-    api_base_url: str = "https://generativelanguage.googleapis.com"
+    freellmapi_api_key: str = "sk-placeholder"
+    freellmapi_base_url: str = "http://127.0.0.1:31415/v1"
+    default_model: str = "auto"
 
     model_config = SettingsConfigDict(
         env_file=".env",
