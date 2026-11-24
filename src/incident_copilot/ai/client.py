@@ -2,16 +2,17 @@ import json
 import httpx
 from typing import Optional
 from incident_copilot.config import settings
-from incident_copilot.models.incident import IncidentPayload, AnalysisResult
+from incident_copilot.models.incident import IncidentPayload, AnalysisResult, RemediationStep
 
 
 class AIClient:
-    """Client for interacting with FreeLLMAPI (OpenAI-compatible) for incident analysis."""
+    """Client for interacting with any OpenAI-compatible LLM provider or Mock mode for incident analysis."""
 
     def __init__(self):
-        self.base_url = settings.freellmapi_base_url.rstrip("/")
-        self.api_key = settings.freellmapi_api_key
-        self.model = settings.default_model
+        self.base_url = settings.llm_base_url.rstrip("/")
+        self.api_key = settings.llm_api_key
+        self.model = settings.llm_model
+        self.mock_mode = settings.mock_mode
         self.timeout = 30.0  # Seconds
 
     def _get_system_prompt(self) -> str:
@@ -38,10 +39,40 @@ class AIClient:
             "}"
         )
 
+    def _get_mock_result(self, payload: IncidentPayload) -> AnalysisResult:
+        """Returns a realistic mock AnalysisResult without making network calls."""
+        return AnalysisResult(
+            summary=f"[MOCK] Incident analyzed with severity {payload.detected_severity}.",
+            root_cause="[MOCK] Simulated root cause: Connection timeout or resource exhaustion detected in logs.",
+            severity=payload.detected_severity,
+            remediation_steps=[
+                RemediationStep(
+                    step_number=1,
+                    action="Check Service Status",
+                    description="Verify if the affected service container or process is running.",
+                    command_example="systemctl status incident-service"
+                ),
+                RemediationStep(
+                    step_number=2,
+                    action="Inspect Logs",
+                    description="Check recent application error logs for stack traces.",
+                    command_example="tail -n 100 /var/log/app.log"
+                )
+            ],
+            preventative_measures=[
+                "Implement automatic service health checks and restarts.",
+                "Set up alerts for connection pool thresholds."
+            ]
+        )
+
     async def analyze_incident(self, payload: IncidentPayload) -> AnalysisResult:
         """
-        Sends the parsed incident data to the LLM and returns a structured AnalysisResult.
+        Sends the parsed incident data to the LLM (or returns mock data if mock_mode is True)
+        and returns a structured AnalysisResult.
         """
+        if self.mock_mode:
+            return self._get_mock_result(payload)
+
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -69,7 +100,7 @@ class AIClient:
                 )
 
             if response.status_code == 401:
-                raise Exception("Authentication failed: Invalid FREELLMAPI_API_KEY.")
+                raise Exception("Authentication failed: Invalid LLM_API_KEY.")
             elif response.status_code != 200:
                 raise Exception(f"API Error ({response.status_code}): {response.text}")
 
@@ -86,8 +117,8 @@ class AIClient:
                 raise Exception(f"Error mapping AI response to model: {str(e)}")
 
         except httpx.ConnectError:
-            raise Exception(f"Could not connect to FreeLLMAPI at {self.base_url}. Is the service running?")
+            raise Exception(f"Could not connect to LLM provider at {self.base_url}. Is the service running or URL correct?")
         except httpx.TimeoutException:
-            raise Exception("The request to FreeLLMAPI timed out.")
+            raise Exception("The request to the LLM provider timed out.")
         except Exception as e:
             raise Exception(f"An unexpected error occurred: {str(e)}")
