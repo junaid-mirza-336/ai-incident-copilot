@@ -59,6 +59,7 @@ Run the analysis by pointing the tool to any log file:
 ```bash
 py -m incident_copilot.interfaces.cli.main data/sample_logs.txt
 ```
+![Sample report](docs/report.png)
 
 ### Example Command Structure:
 `py -m incident_copilot.interfaces.cli.main [LOG_FILE_PATH]`
