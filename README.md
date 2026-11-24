@@ -28,7 +28,7 @@ AI Incident Copilot is a powerful CLI-based tool designed for IT and Network Eng
 
 3. **Install dependencies:**
    ```bash
-   py -m pip install -e .
+   py -m pip install -e ".[dev]"
    ```
 
 ---
