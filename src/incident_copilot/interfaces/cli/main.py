@@ -85,7 +85,7 @@ def main(
     for step in result.remediation_steps:
         console.print(f"  [bold cyan]{step.step_number}. {step.action}[/bold cyan]")
         console.print(f"     {step.description}")
-        if step.command_example:
+        if step.command_example and step.command_example.strip().upper() not in ["N/A", "NONE", "NULL", ""]:
             console.print(f"     [dim]Command:[/dim] [code]{step.command_example}[/code]")
 
     # Preventative Measures Section (if any)
